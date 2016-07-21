@@ -1,35 +1,49 @@
 module Usine
   class Factory
-    def self.call(mode, operation, params = {})
-      factory = new(mode, operation, params = {})
+    attr_reader :mode
+    attr_reader :operation
+    attr_reader :params
+
+    def self.call(mode, operation, params = {}, definitions = Usine.definitions)
+      factory = new(mode, operation, params, definitions)
       factory.process!
     end
 
-    def initialize(mode, operation, params = {})
+    def initialize(mode, operation, params = {}, definitions = Usine.definitions)
       @mode = mode
       @operation = operation
-      @params = params
-      @definition = execute_definition
+      @params = params || {}
+      @definitions = definitions
+      @definition = run_definition
     end
 
     def process!
-      @operation.send(@mode, @params.merge(@definition.fields))
+      @operation.send(@mode, merged_params)
+    end
+
+    def merged_params
+      @definition.fields.merge(@params)
     end
 
     protected
 
-    def find_definition
-      Usine.definitions.fetch(@operation.to_s, nil)
-    end
-
-    def execute_definition
-      unless definition_block = find_definition
+    def run_definition
+      unless definition_blocks = find_definitions
         raise UsineError::DefinitionNotFound, "No definition found for `#{@operation}`"
       end
+      run_definition_blocks(definition_blocks)
+    end
 
-      executor = DefinitionExecutor.new
-      executor.execute(definition_block)
-      executor
+    def find_definitions
+      @definitions.fetch(@operation.to_s, nil)
+    end
+
+    def run_definition_blocks(definition_blocks)
+      runner = DefinitionRunner.new
+      definition_blocks.each do |definition_block|
+        runner.run(definition_block)
+      end
+      runner
     end
   end
 end

@@ -1,7 +1,7 @@
 require "usine/version"
 require "usine/factory"
 require "usine/exceptions"
-require "usine/definition_executor"
+require "usine/definition_runner"
 require 'uber/inheritable_attr'
 
 module Usine
@@ -10,11 +10,11 @@ module Usine
   end
 
   def self.run(*args)
-    Factory.(:call, args.shift, args.shift)
+    Factory.(:run, args.shift, args.shift)
   end
 
   def self.present(*args)
-    Factory.(:call, args.shift, args.shift)
+    Factory.(:present, args.shift, args.shift)
   end
 
   extend Uber::InheritableAttr
@@ -22,8 +22,16 @@ module Usine
   self.definitions = {}
 
   class << self
-    def define(operation, &block)
-      self.definitions[operation.to_s] = block
+    def define(operation, *extensions, &block)
+      operation_name = operation.to_s
+
+      self.definitions[operation_name] ||= []
+
+      extensions.each do |extension|
+        self.definitions[operation_name] << extension
+      end
+
+      self.definitions[operation_name] << block
     end
   end
 end

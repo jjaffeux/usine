@@ -1,12 +1,12 @@
 module Usine
-  class DefinitionExecutor
+  class DefinitionRunner
     attr_reader :fields
 
     def initialize
       @fields = {}
     end
 
-    def execute(definition_block)
+    def run(definition_block)
       self.instance_eval(&definition_block)
     end
 
