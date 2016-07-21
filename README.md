@@ -2,7 +2,7 @@
 
 Usine (french word for factory) is a small gem aiming to bring a limited feature set of factory_girl
 when using Trailblazer’s operations. [Trailblazer](http://trailblazer.to/) advocates against using factory_girl to avoid
-difference when initializing objects. Usine follows this path but allows you to define defaults for the
+differences when initializing objects. Usine follows this path but allows you to define defaults for the
 parameters passed to your operations.
 
 ## Installation
