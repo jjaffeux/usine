@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Joffrey JAFFEUX"]
   spec.email         = ["j.jaffeux@gmail.com"]
 
-  spec.summary       = %q{Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{Write a longer description or delete this line.}
-  spec.homepage      = "http://github.usine.com"
+  spec.summary       = %q{Factories for Trailblazer’s operations}
+  spec.description   = %q{Usine (french word for factory) is a small gem aiming to bring a limited feature set of factory_girl when using Trailblazer’s operations.}
+  spec.homepage      = "https://github.com/jjaffeux/usine"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
