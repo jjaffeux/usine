@@ -26,12 +26,12 @@ Or install it yourself as:
 ### Create definitions to be used by factories
 
 ```ruby
-Usine.define(Item::Create) do
+Usine.definition(Item::Create) do
   title { "Some title" }
 end
 ```
 
-Define accepts unlimited args after the operation class, to allow you to share
+Definition accept unlimited args after the operation class, to allow you to share
 definitions.
 
 ```ruby
@@ -39,11 +39,11 @@ SendableDefinition = proc {
   sendable { false }
 }
 
-Usine.define(Item::Create, SendableDefinition) do
+Usine.definition(Item::Create, SendableDefinition) do
   title { "Some title" }
 end
 
-Usine.define(Item::Update, SendableDefinition) do
+Usine.definition(Item::Update, SendableDefinition) do
   title { "Some title" }
 end
 ```
@@ -59,6 +59,29 @@ Usine.run(Item::Create, title: "different title")
 Usine.present(Item::Create, title: "different title")
 ```
 
+`present` for example can be used to access model/contract without calling process in the operation.
+
+### Sequences
+
+```ruby
+# global sequence
+Usine.sequence(:title) do |n|
+  "title number #{n}"
+end
+
+# if no block is passed to the attribute, it will call generate(:attribute_name)
+Usine.definition(Item::Create) do
+  title #title number 1
+  subtitle { generate(:title) } #title number 2
+end
+
+# inline sequence with different initial value
+Usine.definition(Item::Create) do
+  sequence(:title, 'a')
+  title #title number a
+  subtitle { generate(:title) } #title number b
+end
+```
 
 ## Contributing
 
