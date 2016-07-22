@@ -2,48 +2,54 @@ module Usine
   class Factory
     attr_reader :mode
     attr_reader :operation
-    attr_reader :params
+    attr_reader :attributes
+    attr_accessor :definition
 
-    def self.call(mode, operation, params = {}, definitions = Usine.definitions)
-      factory = new(mode, operation, params, definitions)
+    def self.call(mode, operation, attributes = {})
+      factory = new(mode, operation, attributes, definitions)
       factory.process!
     end
 
-    def initialize(mode, operation, params = {}, definitions = Usine.definitions)
+    def initialize(mode, operation, attributes = {})
       @mode = mode
       @operation = operation
-      @params = params || {}
-      @definitions = definitions
-      @definition = run_definition
+      @definitions = attributes.delete(:definitions) || Usine.definitions.fetch(operation, [])
+      @sequences = attributes.delete(:sequences) || Usine.sequences
+      @attributes = attributes || {}
     end
 
     def process!
-      @operation.send(@mode, merged_params)
+      @operation.send(@mode, merged_attributes)
     end
 
-    def merged_params
-      @definition.fields.merge(@params)
+    def merged_attributes
+      evaluated_factory.attributes.merge(@attributes)
+    end
+
+    def evaluated_factory
+      @evaluated_factory ||= evaluate_with_definitions(@sequences)
     end
 
     protected
 
-    def run_definition
-      unless definition_blocks = find_definitions
+    def filtered_definitions
+      filtered = @definitions.select do |definition|
+        definition.name == @operation
+      end
+
+      if filtered.empty?
         raise UsineError::DefinitionNotFound, "No definition found for `#{@operation}`"
       end
-      run_definition_blocks(definition_blocks)
+
+      filtered
     end
 
-    def find_definitions
-      @definitions.fetch(@operation.to_s, nil)
-    end
-
-    def run_definition_blocks(definition_blocks)
-      runner = DefinitionRunner.new
-      definition_blocks.each do |definition_block|
-        runner.run(definition_block)
+    def evaluate_with_definitions(sequences)
+      evaluator = Evaluator.new(sequences)
+      filtered_definitions.each do |definition|
+        evaluator.instance_eval(&definition.block)
       end
-      runner
+      evaluator
     end
   end
 end

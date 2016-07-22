@@ -1,20 +1,28 @@
 require 'test_helper'
 
 describe "FactoryTest" do
-  subject { Usine::Factory}
-
-  describe "when initialized with the constructor" do
-    it "#new" do
-      factory = subject.new(:run, Item::Create)
-
-      factory.mode.must_equal(:run)
-      factory.operation.must_equal(Item::Create)
+  let(:definition) {
+    Usine::Definition.new(Item::Create) do
+      title    { "DEFAULT_TITLE" }
+      subtitle { "DEFAULT_SUBTITLE" }
     end
+  }
 
-    it "#merged_params" do
-      factory = subject.new(:run, Item::Create, title: "another title")
+  subject { Usine::Factory.new(:run, Item::Create, title: "ALT_TITLE", definitions: [definition]) }
 
-      factory.merged_params.must_equal(title: "another title")
-    end
+  it "#mode" do
+    subject.mode.must_equal(:run)
+  end
+
+  it "#operation" do
+    subject.operation.must_equal(Item::Create)
+  end
+
+  it "#attributes" do
+    subject.attributes.must_equal(title: "ALT_TITLE")
+  end
+
+  it "#merged_attributes" do
+    subject.merged_attributes[:title].must_equal("ALT_TITLE")
   end
 end

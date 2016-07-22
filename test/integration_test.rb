@@ -1,65 +1,59 @@
 require 'test_helper'
 
 describe "IntegrationTest" do
-  describe "callable" do
-    it ".call" do
-      operation = Usine.run(Item::Create)
-      operation.model.title.must_equal "DEFAULT_TITLE"
+  it "overwrites default attribute" do
+    definition = Usine::Definition.new(Item::Create) do
+      title { "DEFAULT_TITLE" }
     end
+    factory = Usine::Factory.new(:run, Item::Create, title: "ALT_TITLE", definitions: [definition])
+
+    attributes = factory.merged_attributes
+
+    attributes[:title].must_equal("ALT_TITLE")
   end
 
-  describe "runnable" do
-    it ".run" do
-      operation = Usine.run(Item::Create)
-      operation.model.title.must_equal "DEFAULT_TITLE"
+  it "uses global sequences" do
+    Usine.sequence(:title) do |n|
+      "title number #{n}"
     end
+
+    definition = Usine::Definition.new(Item::Create) do
+      title
+      subtitle { generate(:title) }
+    end
+    factory = Usine::Factory.new(:run, Item::Create, definitions: [definition])
+
+    attributes = factory.merged_attributes
+
+    attributes[:title].must_equal("title number 1")
+    attributes[:subtitle].must_equal("title number 2")
   end
 
-  describe "presentable" do
-    it ".present" do
-      operation = Usine.run(Item::Create)
-      operation.model.title.must_equal "DEFAULT_TITLE"
+  it "uses inline sequences" do
+    Usine.sequence(:title) do |n|
+      "title number #{n}"
     end
+
+    definition = Usine::Definition.new(Item::Create) do
+      sequence(:title) { |n| "title number #{n}" }
+      title { generate(:title) }
+    end
+    factory = Usine::Factory.new(:run, Item::Create, definitions: [definition])
+
+    attributes = factory.merged_attributes
+
+    attributes[:title].must_equal("title number 1")
   end
 
-  describe "definition creation" do
-    it ".define" do
-      class Item::Delete < Item::Create; end
-      Usine.define(Item::Delete) do
-        subtitle { "Untold story" }
-      end
-
-      operation = Usine.(Item::Delete)
-      operation.model.subtitle.must_equal "Untold story"
+  it "uses global definitions" do
+    Usine.definition(Item::Create) do
+      title { "SOME TITLE" }
     end
 
-    it "can be extended with other blocks" do
-      SendableDefinition = proc {
-        valid { false }
-      }
+    factory = Usine::Factory.new(:run, Item::Create)
 
-      AltTitleDefinition = proc {
-        title { "ALT_DEFAULT_TITLE" }
-      }
+    attributes = factory.merged_attributes
 
-      class Item::Delete < Item::Create; end
-      Usine.define(Item::Delete, SendableDefinition, AltTitleDefinition) do
-        subtitle { "Untold story" }
-      end
-
-      operation = Usine.(Item::Delete)
-
-      operation.model.valid.must_equal false
-      operation.model.subtitle.must_equal "Untold story"
-      operation.model.title.must_equal "ALT_DEFAULT_TITLE"
-    end
-  end
-
-  describe "when the definition is not found" do
-    it "raises an error" do
-      proc {
-        Usine.(Item::Update)
-      }.must_raise(UsineError::DefinitionNotFound)
-    end
+    attributes[:title].must_equal("SOME TITLE")
   end
 end
