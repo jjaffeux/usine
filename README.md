@@ -77,7 +77,7 @@ end
 
 ### Writing a test with Usine
 
-```
+```ruby
 # Without Usine
 let(:item) {
   Item::Create.({
