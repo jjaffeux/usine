@@ -80,6 +80,11 @@ Usine.sequence(:title) do |n|
   "title number #{n}"
 end
 
+# specifying a different initial value (defaults to 1), it must respond to #next
+Usine.sequence(:title, "a") do |n|
+  "title_#{n}"
+end
+
 # inline sequence in a definition
 Usine.definition(:user) do
   sequence(:email) { |n| "joffrey_#{n}@example.com" }
