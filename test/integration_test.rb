@@ -1,59 +1,37 @@
 require 'test_helper'
 
 describe "IntegrationTest" do
-  it "overwrites default attribute" do
-    definition = Usine::Definition.new(Item::Create) do
-      title { "DEFAULT_TITLE" }
-    end
-    factory = Usine::Factory.new(:run, Item::Create, title: "ALT_TITLE", definitions: [definition])
-
-    attributes = factory.merged_attributes
-
-    attributes[:title].must_equal("ALT_TITLE")
-  end
-
-  it "uses global sequences" do
-    Usine.sequence(:title) do |n|
-      "title number #{n}"
+  it "supports kitchen sink example" do
+    Usine.sequence(:email) do |n|
+      "example#{n}@example.com"
     end
 
-    definition = Usine::Definition.new(Item::Create) do
-      title
-      subtitle { generate(:title) }
-    end
-    factory = Usine::Factory.new(:run, Item::Create, definitions: [definition])
-
-    attributes = factory.merged_attributes
-
-    attributes[:title].must_equal("title number 1")
-    attributes[:subtitle].must_equal("title number 2")
-  end
-
-  it "uses inline sequences" do
-    Usine.sequence(:title) do |n|
-      "title number #{n}"
-    end
-
-    definition = Usine::Definition.new(Item::Create) do
-      sequence(:title) { |n| "title number #{n}" }
-      title { generate(:title) }
-    end
-    factory = Usine::Factory.new(:run, Item::Create, definitions: [definition])
-
-    attributes = factory.merged_attributes
-
-    attributes[:title].must_equal("title number 1")
-  end
-
-  it "uses global definitions" do
-    Usine.definition(Item::Create) do
+    Usine.definition(:item) do
       title { "SOME TITLE" }
+      type { "1" }
     end
 
-    factory = Usine::Factory.new(:run, Item::Create)
+    Usine.definition(:user) do
+      sequence(:tag, 'a') {|n| "tag_#{n}"}
+      email
+      name { "John" }
+      tags { [generate(:tag), generate(:tag)] }
+    end
 
-    attributes = factory.merged_attributes
+    Usine.factory(Item::Create) do
+      item
+      current_user { use(:user) }
+    end
 
-    attributes[:title].must_equal("SOME TITLE")
+    operation = Usine.(Item::Create, item: {type: "2" }, current_user: {name: "Maria"})
+
+    model = operation.model
+    current_user = model.current_user
+
+    model.title.must_equal("SOME TITLE")
+    model.type.must_equal("2")
+    current_user.name.must_equal("Maria")
+    current_user.email.must_equal("example1@example.com")
+    current_user.tags.must_equal(["tag_a", "tag_b"])
   end
 end

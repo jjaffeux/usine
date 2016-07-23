@@ -1,8 +1,8 @@
 require 'test_helper'
 
-describe "EvaluatorTest" do
+describe "DefinitionEvaluatorTest" do
   it "adds each attribute to the evaluator" do
-    evaluator = Usine::Evaluator.new
+    evaluator = Usine::DefinitionEvaluator.new
     definition = Usine::Definition.new("xxx") do
       title    { "DEFAULT_TITLE" }
       subtitle { "DEFAULT_SUBTITLE" }
@@ -19,7 +19,7 @@ describe "EvaluatorTest" do
         sequences = [
           Usine::Sequence.new(:subtitle) {|n| "DEFAULT_SUBTITLE_#{n}" }
         ]
-        evaluator = Usine::Evaluator.new(sequences)
+        evaluator = Usine::DefinitionEvaluator.new(sequences)
         definition = Usine::Definition.new("xxx") do
           subtitle
         end
@@ -31,7 +31,7 @@ describe "EvaluatorTest" do
 
     describe "inline sequence exists" do
       it "uses #generate with the attribute as default key" do
-        evaluator = Usine::Evaluator.new
+        evaluator = Usine::DefinitionEvaluator.new
         definition = Usine::Definition.new("xxx") do
           sequence(:subtitle)  {|n| "DEFAULT_SUBTITLE_#{n}" }
           subtitle
@@ -44,14 +44,14 @@ describe "EvaluatorTest" do
 
     describe "no sequence for this attribute" do
       it "raises an error" do
-        evaluator = Usine::Evaluator.new
+        evaluator = Usine::DefinitionEvaluator.new
         definition = Usine::Definition.new("xxx") do
           subtitle
         end
 
         proc {
           evaluator.instance_eval(&definition.block)
-        }.must_raise UsineError::SequenceNotFound
+        }.must_raise(UsineError::SequenceNotFound)
       end
     end
   end

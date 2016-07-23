@@ -3,15 +3,28 @@ require 'usine'
 require 'trailblazer'
 require 'minitest/autorun'
 
-# Fake model
+# Fake models
+class User
+  attr_accessor :email
+  attr_accessor :name
+  attr_accessor :tags
+end
+
 class Item
   attr_accessor :title
+  attr_accessor :type
   attr_accessor :subtitle
   attr_accessor :valid
+  attr_accessor :current_user
 
   def initialize(params)
-    params.each do |k, v|
+    @current_user = User.new
+    params.fetch(:item, {}).each do |k, v|
       self.send("#{k}=", v)
+    end
+
+    params.fetch(:current_user, {}).each do |k, v|
+      @current_user.send("#{k}=", v)
     end
   end
 end
