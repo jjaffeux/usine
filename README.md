@@ -23,45 +23,56 @@ Or install it yourself as:
 
 ## Usage
 
-### Create definitions to be used by factories
+### Definitions
+
+Definitions are the base of anything in Usine, they are used in factories to generate
+the hash of params sent to the operation.
 
 ```ruby
-Usine.definition(Item::Create) do
+Usine.definition(:item) do
   title { "Some title" }
+end
+
+Usine.definition(:user) do
+  email { "j.jaffeux@example.com" }
 end
 ```
 
-Definition accept unlimited args after the operation class, to allow you to share
-definitions.
+### Factories
+
+Factories let you build a hash which will be sent to an operation when you need it.
+This is what you will call when building your objects in a test.
 
 ```ruby
-SendableDefinition = proc {
-  sendable { false }
-}
-
-Usine.definition(Item::Create, SendableDefinition) do
-  title { "Some title" }
-end
-
-Usine.definition(Item::Update, SendableDefinition) do
-  title { "Some title" }
+Usine.factory(Item::Create) do
+  item # if not block given, it will invoke use(:item), which means it will use the :item Definition
+  current_user use(:user)
 end
 ```
 
-### Using factories
+### Invoking factories
 
 Usine respects Trailblazer naming differences when creating an operation : call, run and present.
+Which means you have 3 different ways to invoke a factory :
 
 ```ruby
-Usine.(Item::Create, title: "different title")
-Usine.call(Item::Create, title: "different title")
-Usine.run(Item::Create, title: "different title")
-Usine.present(Item::Create, title: "different title")
+Usine.(Item::Create, item: {title: "different title"})
+Usine.run(Item::Create, item: {title: "different title"})
+Usine.present(Item::Create, item: {title: "different title"})
 ```
 
 `present` for example can be used to access model/contract without calling process in the operation.
 
+Let see an example in a test :
+```
+let(:user_id) {
+  Usine.(User::Create).model.id
+}
+```
+
 ### Sequences
+
+Sequences are used in Definitions to help you create different occurences of the same kind of attribute.
 
 ```ruby
 # global sequence
@@ -69,17 +80,12 @@ Usine.sequence(:title) do |n|
   "title number #{n}"
 end
 
-# if no block is passed to the attribute, it will call generate(:attribute_name)
-Usine.definition(Item::Create) do
-  title #title number 1
-  subtitle { generate(:title) } #title number 2
-end
-
-# inline sequence with different initial value
-Usine.definition(Item::Create) do
-  sequence(:title, 'a')
-  title #title number a
-  subtitle { generate(:title) } #title number b
+# inline sequence in a definition
+Usine.definition(:user) do
+  sequence(:email) { |n| "joffrey_#{n}@example.com" }
+  email # if no block given, Usine will try to invoke generate(:email)
+  title # and will also search in global sequences
+  alt_email { generate(:email) }
 end
 ```
 
