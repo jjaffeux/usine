@@ -1,68 +1,27 @@
+require "uber/inheritable_attr"
+require "factory_girl"
 require "usine/version"
 require "usine/utils"
-require "usine/factory"
-require "usine/factory_evaluator"
-require "usine/exceptions"
-require "usine/definition_evaluator"
-require "usine/definition"
-require "usine/sequence"
-require "uber/inheritable_attr"
+require "usine/null_model"
+require "usine/operation_factory"
+require "usine/operation_wrapper"
 
 module Usine
   extend Uber::InheritableAttr
-  inheritable_attr :definitions
-  self.definitions = []
-  inheritable_attr :factories
-  self.factories = []
-  inheritable_attr :sequences
-  self.sequences = []
+  inheritable_attr :operations
+  self.operations = []
 
   class << self
-
     [:call, :run, :present].each do |mode|
       define_method mode, ->(*args, &block) {
         operation = args.shift
-        factory = find_factory_for_operation(operation)
-        FactoryEvaluator.call(factory, mode, args.shift)
+        attributes = args.shift || {}
+        OperationWrapper.(mode, operation, attributes)
       }
     end
 
-    def factory(operation, *extensions, &block)
-      self.factories ||= []
-
-      self.factories << Factory.new(operation, *extensions, &block)
-
-      extensions.each do |extension|
-        self.factories << Factory.new(operation, *extension, &block)
-      end
-    end
-
-    def sequence(name, initial_value = 1, &block)
-      self.sequences << Sequence.new(name, initial_value, &block)
-    end
-
-    def definition(attribute, *extensions, &block)
-      self.definitions ||= []
-
-      self.definitions << Definition.new(attribute, &block)
-
-      extensions.each do |extension|
-        self.definitions << Definition.new(attribute, &block)
-      end
-    end
-
-    protected
-
-    def find_factory_for_operation(operation)
-      factory = Usine.factories.detect do |f|
-        f.operation == operation
-      end
-
-      if factory.nil?
-        raise "NOT FOUND FACTORY for #{operation}"
-      end
-
-      factory
+    def operation(operation, *args, &block)
+      self.operations << OperationFactory.new(operation, &block)
     end
   end
 end

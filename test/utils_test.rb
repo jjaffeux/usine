@@ -1,6 +1,6 @@
 require 'test_helper'
 
-describe "DefinitionTest" do
+describe Usine::Utils do
   it ".merge_hashes" do
     a = {email: "j.jaffeux@example.com", age: 18}
     b = {email: "franck@example.com", name: "franck"}

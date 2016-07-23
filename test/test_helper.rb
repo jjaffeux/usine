@@ -1,20 +1,17 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'usine'
+require 'factory_girl'
 require 'trailblazer'
 require 'minitest/autorun'
 
 # Fake models
 class User
   attr_accessor :email
-  attr_accessor :name
-  attr_accessor :tags
 end
 
 class Item
   attr_accessor :title
-  attr_accessor :type
   attr_accessor :subtitle
-  attr_accessor :valid
   attr_accessor :current_user
 
   def initialize(params)
@@ -29,7 +26,6 @@ class Item
   end
 end
 
-# Fake operation
 class Item::Create < Trailblazer::Operation
   def model!(params)
     Item.new(params)
@@ -37,5 +33,20 @@ class Item::Create < Trailblazer::Operation
 
   def process(params)
     params
+  end
+end
+
+FactoryGirl.define do
+  sequence :title do |n|
+    "title_#{n}"
+  end
+
+  factory :item do
+    title { "DEFAULT TITLE"}
+  end
+
+  factory :book, class:Usine::NullModel do
+    title { generate(:title) }
+    subtitle { generate(:title) }
   end
 end
