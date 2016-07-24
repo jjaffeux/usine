@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["j.jaffeux@gmail.com"]
 
   spec.summary       = %q{Factories for Trailblazer’s operations}
-  spec.description   = %q{Usine (french word for factory) is a small gem aiming to bring a limited feature set of factory_girl when using Trailblazer’s operations.}
+  spec.description   = %q{Usine (french word for factory) is a wrapper around factory_girl for Trailblazer’s operations.}
   spec.homepage      = "https://github.com/jjaffeux/usine"
   spec.license       = "MIT"
 
