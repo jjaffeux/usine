@@ -99,12 +99,20 @@ FactoryGirl.define do
   end
 end
 
+Usine.operation(User::Create) do
+  user
+end
+
 Usine.operation(Item::Create) do
   item
-  current_user :user
+  current_user User::Create #operation used as factory, will return its model
 end
 
 let(:item) { Usine.(Item::Create).model }
+
+# note that you can also give attributes when an Operation is used as factory
+# this will assign User::Create.(email: "my_mail@example.com").model to current_user key
+let(:item) { Usine.(Item::Create, current_user: {email: "my_email@example.com"}).model }
 ```
 
 The second example might look more verbose, but you only have to define factories/operations one time.

@@ -1,34 +1,55 @@
+require 'bundler/setup'
+require 'minitest/autorun'
+require 'factory_girl'
+require 'active_model'
+require 'trailblazer'
+require 'trailblazer/operation/policy'
+
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'usine'
-require 'factory_girl'
-require 'trailblazer'
-require 'minitest/autorun'
 
 # Fake models
 class User
+  include ActiveModel::Model
+
   attr_accessor :email
 end
 
 class Item
+  include ActiveModel::Model
+
   attr_accessor :title
   attr_accessor :subtitle
-  attr_accessor :current_user
-
-  def initialize(params)
-    @current_user = User.new
-    params.fetch(:item, {}).each do |k, v|
-      self.send("#{k}=", v)
-    end
-
-    params.fetch(:current_user, {}).each do |k, v|
-      @current_user.send("#{k}=", v)
-    end
-  end
 end
 
 class Item::Create < Trailblazer::Operation
+  include Policy::Guard
+
+  policy do |params|
+    params[:current_user].present?
+  end
+
+  contract do
+    property :title
+    property :subtitle
+  end
+
   def model!(params)
-    Item.new(params)
+    Item.new(params[:item])
+  end
+
+  def process(params)
+    params
+  end
+end
+
+class User::Create < Trailblazer::Operation
+  contract do
+    property :email
+  end
+
+  def model!(params)
+    User.new(params[:user])
   end
 
   def process(params)

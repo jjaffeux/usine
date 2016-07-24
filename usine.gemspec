@@ -22,8 +22,10 @@ Gem::Specification.new do |spec|
   spec.add_dependency             "uber"
   spec.add_dependency             "factory_girl"
 
+  spec.add_development_dependency "trailblazer", "~> 1.1"
+  spec.add_development_dependency "reform"
+  spec.add_development_dependency "activemodel"
   spec.add_development_dependency "bundler", "~> 1.12"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "minitest", "~> 5.0"
-  spec.add_development_dependency "trailblazer", "~> 1.1"
 end
